@@ -1,0 +1,1 @@
+DECKLISTS_URL = 'https://www.mtgo.com/decklists'

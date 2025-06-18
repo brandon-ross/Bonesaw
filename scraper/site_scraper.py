@@ -4,6 +4,8 @@ from requests.adapters import HTTPAdapter
 from bs4 import BeautifulSoup
 from typing import Dict
 
+from config import DECKLISTS_URL
+
 def create_session(retries: int = 5) -> requests.Session:
     session = requests.Session()
     adapter = HTTPAdapter(max_retries=retries)
@@ -35,7 +37,7 @@ def main():
     session = create_session()
 
     try:
-        html = fetch_page(session, 'https://www.mtgo.com/decklists')
+        html = fetch_page(session, DECKLISTS_URL)
         tournaments = parse_tournaments(html)
         for t in tournaments:
              print(t)
