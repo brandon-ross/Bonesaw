@@ -3,8 +3,17 @@ import requests
 from requests.adapters import HTTPAdapter
 from bs4 import BeautifulSoup
 from typing import Dict
+import re
+import json
 
-from config import DECKLISTS_URL
+from config import DECKLISTS_URL, BASE_URL, TEST_URL
+
+# --- TO DOs ---
+# 1. save off tournament raw data
+# 2. filter tournaments by challenge/league and/or format
+# 3. add logging
+# 4. Retry() from urllib3
+# 5. Classes?
 
 def create_session(retries: int = 5) -> requests.Session:
     session = requests.Session()
@@ -32,6 +41,22 @@ def parse_tournaments(html_content: bytes) -> list[Dict]:
         })
     return tournaments
 
+def parse_single_tournament(html_content: bytes):
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    for script in soup.find_all('script'):
+        script_text = script.get_text()
+        if 'window.MTGO.decklists.data' in script_text:
+            target_script = script_text
+
+    match = re.search(r'window\.MTGO\.decklists\.data\s*=\s*(\{.*?\});', target_script, re.DOTALL)
+    json_str = match.group(1)
+
+    data = json.loads(json_str)
+
+    print(data)
+    
+
 def main():
 
     session = create_session()
@@ -39,8 +64,13 @@ def main():
     try:
         html = fetch_page(session, DECKLISTS_URL)
         tournaments = parse_tournaments(html)
-        for t in tournaments:
-             print(t)
+
+        test_html = fetch_page(session, TEST_URL)
+        decklists = parse_single_tournament(test_html)
+
+        # for tournament in tournaments:
+            #  tournament_url = BASE_URL + tournament['href']
+
 
     except Exception as e:
         print(f'Error: {e}')
